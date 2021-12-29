@@ -1,0 +1,39 @@
+name: Mirror repo
+
+on:
+  pull_request:
+  schedule:
+    - cron:  '0 0 * * *'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Install SSH key
+        run: |
+          mkdir -p -m 700 ~/.ssh
+          echo "${{ secrets.SOURCE_SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+
+      - name: Download source repo
+        run: git clone ${{ secrets.SOURCE_REPO_URL }}
+
+      - name: Install SSH key
+        run: |
+          echo "${{ secrets.MIRROR_SSH_KEY }}" > ~/.ssh/id_rsa
+
+      - name: Upload source repo to mirror repo
+        run: |
+          git remote add public ${{ secrets.MIRROR_REPO_URL }}
+          git push public main
+
+      - uses: 8398a7/action-slack@v3.9.2
+        with:
+          status: ${{ job.status }}
+          fields: all
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL_ALERT }}
+        if: failure()
