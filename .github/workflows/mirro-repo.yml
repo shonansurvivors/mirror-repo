@@ -18,7 +18,7 @@ jobs:
           chmod 600 ~/.ssh/id_rsa
 
       - name: Download source repo
-        run: git clone ${{ secrets.SOURCE_REPO_URL }}
+        run: git clone ${{ secrets.SOURCE_REPO_URL }} .
 
       - name: Install SSH key
         run: |
